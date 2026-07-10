@@ -341,12 +341,10 @@ img, svg {
   border-radius: 14px;
   padding: 24px;
   background: var(--panel);
-  transition: border-color 160ms ease, transform 160ms ease;
 }
 
 .feature-card:hover {
   border-color: var(--accent);
-  transform: translateY(-3px);
 }
 
 .feature-icon {
@@ -751,39 +749,57 @@ img, svg {
   text-align: center;
 }
 
-/* ---------- Revelação ao rolar (cortina) ---------- */
+/* ---------- Revelação ao rolar (scroll-scrub premium) ---------- */
 
-.reveal {
-  position: relative;
-}
-
-.reveal-curtain {
-  position: absolute;
-  inset: 0;
-  background: var(--bg);
-  transform-origin: top;
-  transform: scaleY(1);
-  transition: transform 900ms cubic-bezier(0.65, 0, 0.35, 1);
-  z-index: 4;
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  box-shadow: 0 0 12px rgba(25, 211, 154, 0.55);
+  z-index: 200;
   pointer-events: none;
 }
 
+.reveal {
+  position: relative;
+  --p: 0;
+}
+
+/* A cortina acompanha o progresso do scroll em vez de simplesmente sumir de uma vez */
+.reveal-curtain {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--bg) 82%, rgba(7, 9, 13, 0.4));
+  transform-origin: top;
+  transform: scaleY(calc(1 - var(--p)));
+  border-bottom: 1px solid rgba(25, 211, 154, 0.4);
+  box-shadow: 0 16px 44px -6px rgba(25, 211, 154, 0.28);
+  z-index: 4;
+  pointer-events: none;
+  will-change: transform;
+}
+
 .reveal-inner {
-  opacity: 0;
-  transform: translateY(56px);
-  transition: opacity 800ms ease 120ms, transform 800ms cubic-bezier(0.16, 1, 0.3, 1) 120ms;
+  opacity: var(--p);
+  transform: translateY(calc((1 - var(--p)) * 64px)) scale(calc(0.96 + var(--p) * 0.04));
+  will-change: transform, opacity;
 }
 
-.reveal.is-visible .reveal-curtain {
-  transform: scaleY(0);
+@media (prefers-reduced-motion: reduce) {
+  .reveal-curtain {
+    display: none;
+  }
+
+  .reveal-inner {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.reveal.is-visible .reveal-inner {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-/* Cartões em cascata dentro das seções reveladas */
+/* Cartões em cascata, com leve desfoque na entrada — assinatura "premium" */
 
 .value-card,
 .feature-card,
@@ -793,8 +809,9 @@ img, svg {
 .team-card,
 .security-list li {
   opacity: 0;
-  transform: translateY(26px);
-  transition: opacity 620ms ease, transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  filter: blur(8px);
+  transform: translateY(30px) scale(0.96);
+  transition: opacity 680ms ease, filter 680ms ease, transform 680ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .reveal.is-visible .value-card,
@@ -805,17 +822,69 @@ img, svg {
 .reveal.is-visible .team-card,
 .reveal.is-visible .security-list li {
   opacity: 1;
-  transform: translateY(0);
+  filter: blur(0);
+  transform: translateY(0) scale(1);
 }
 
 .value-card:nth-child(1), .feature-card:nth-child(1), .gallery-item:nth-child(1), .step:nth-child(1), .req-card:nth-child(1), .team-card:nth-child(1), .security-list li:nth-child(1) { transition-delay: 80ms; }
-.value-card:nth-child(2), .feature-card:nth-child(2), .gallery-item:nth-child(2), .step:nth-child(2), .req-card:nth-child(2), .team-card:nth-child(2), .security-list li:nth-child(2) { transition-delay: 140ms; }
-.value-card:nth-child(3), .feature-card:nth-child(3), .gallery-item:nth-child(3), .step:nth-child(3), .req-card:nth-child(3), .team-card:nth-child(3), .security-list li:nth-child(3) { transition-delay: 200ms; }
-.feature-card:nth-child(4), .step:nth-child(4), .req-card:nth-child(4), .security-list li:nth-child(4) { transition-delay: 260ms; }
-.feature-card:nth-child(5) { transition-delay: 320ms; }
-.feature-card:nth-child(6) { transition-delay: 380ms; }
-.feature-card:nth-child(7) { transition-delay: 440ms; }
-.feature-card:nth-child(8) { transition-delay: 500ms; }
+.value-card:nth-child(2), .feature-card:nth-child(2), .gallery-item:nth-child(2), .step:nth-child(2), .req-card:nth-child(2), .team-card:nth-child(2), .security-list li:nth-child(2) { transition-delay: 150ms; }
+.value-card:nth-child(3), .feature-card:nth-child(3), .gallery-item:nth-child(3), .step:nth-child(3), .req-card:nth-child(3), .team-card:nth-child(3), .security-list li:nth-child(3) { transition-delay: 220ms; }
+.feature-card:nth-child(4), .step:nth-child(4), .req-card:nth-child(4), .security-list li:nth-child(4) { transition-delay: 290ms; }
+.feature-card:nth-child(5) { transition-delay: 360ms; }
+.feature-card:nth-child(6) { transition-delay: 430ms; }
+.feature-card:nth-child(7) { transition-delay: 500ms; }
+.feature-card:nth-child(8) { transition-delay: 570ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .value-card,
+  .feature-card,
+  .gallery-item,
+  .step,
+  .req-card,
+  .team-card,
+  .security-list li {
+    transition: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+}
+
+/* Brilho que segue o cursor nos cards */
+
+.value-card,
+.feature-card,
+.req-card,
+.team-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.value-card::before,
+.feature-card::before,
+.req-card::before,
+.team-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(25, 211, 154, 0.16), transparent 70%);
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+
+.value-card:hover::before,
+.feature-card:hover::before,
+.req-card:hover::before,
+.team-card:hover::before {
+  opacity: 1;
+}
+
+.feature-card {
+  transition: opacity 680ms ease, filter 680ms ease, border-color 160ms ease,
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  transform-style: preserve-3d;
+}
 
 /* Entrada suave do hero ao carregar a página */
 
