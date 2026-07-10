@@ -1,0 +1,17 @@
+# Ambiente Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Segredos / config local
+.env
+certs/
+
+# Dados gerados em uso
+media/photos/*
+media/videos/*
+!media/photos/.gitkeep
+!media/videos/.gitkeep
+server.out.log
+server.err.log

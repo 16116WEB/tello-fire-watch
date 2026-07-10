@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DJI Tello Fire Watch</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  </head>
+  <body>
+    <section id="splash" class="splash-screen">
+      <div class="splash-content">
+        <p class="eyebrow">DJI Tello</p>
+        <h1 class="splash-title">Fire Watch</h1>
+        <p>Controle web com deteccao de pessoas e focos de fogo em tempo real.</p>
+        <button id="startBtn" class="primary">Iniciar</button>
+      </div>
+    </section>
+
+    <div id="fireAlert" class="fire-alert" role="alert">
+      <strong>Fogo detectado</strong>
+      <span id="fireAlertText">--</span>
+      <button id="closeAlertBtn" aria-label="Fechar alerta">x</button>
+    </div>
+
+    <div id="connBanner" class="conn-banner" role="alert">
+      <strong>Sem conexao com o servidor</strong>
+      <span id="connBannerText">Tentando reconectar...</span>
+    </div>
+
+    <main id="mainApp" class="app-shell hidden">
+      <section class="video-stage">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">DJI Tello</p>
+            <h1>Controle e deteccao</h1>
+          </div>
+          <div class="top-actions">
+            <button id="connectBtn" class="primary">Conectar</button>
+            <button id="disconnectBtn">Desconectar</button>
+            <a href="/vr" class="small-button" title="Modo imersivo (Meta Quest)">Modo VR</a>
+          </div>
+        </header>
+
+        <div class="video-wrap">
+          <img id="videoFeed" alt="Stream ao vivo do Tello">
+          <div id="videoPlaceholder" class="placeholder">Aguardando stream UDP do Tello</div>
+          <div class="record-pill" id="recordPill">REC</div>
+
+          <div class="joystick-zone joystick-left" id="joyLeft">
+            <div class="joystick-knob" id="joyLeftKnob"></div>
+          </div>
+          <div class="joystick-zone joystick-right" id="joyRight">
+            <div class="joystick-knob" id="joyRightKnob"></div>
+          </div>
+        </div>
+
+        <div class="control-strip">
+          <button data-action="takeoff">Decolar</button>
+          <button data-action="land">Pousar</button>
+          <button data-action="emergency" class="danger">Emergencia</button>
+          <button data-action="photo">Foto</button>
+          <button data-action="record" id="recordBtn">Gravar</button>
+          <button id="detectButton">Pausar deteccao</button>
+          <button id="nightButton">Modo noturno</button>
+        </div>
+
+        <section class="status-panel wide-panel">
+          <div class="panel-header">
+            <h2>Deteccao</h2>
+            <span id="confidenceLabel">60%</span>
+          </div>
+          <input id="confidenceSlider" class="slider" type="range" min="0" max="100" value="60">
+          <div class="counter-grid">
+            <div><span>Pessoas na sessao</span><strong id="personCount">0</strong></div>
+            <div><span>Focos de fogo</span><strong id="fireCount">0</strong></div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="side-panel">
+        <section class="status-panel">
+          <h2>Status</h2>
+          <div class="status-grid">
+            <div><span>Conexao</span><strong id="connected">offline</strong></div>
+            <div><span>Bateria</span><strong id="battery">--%</strong></div>
+            <div><span>Wi-Fi</span><strong id="wifi">-- dBm</strong></div>
+            <div><span>Stream</span><strong id="quality">--%</strong></div>
+            <div><span>Vel. X</span><strong id="vx">0 cm/s</strong></div>
+            <div><span>Vel. Y</span><strong id="vy">0 cm/s</strong></div>
+            <div><span>Vel. Z</span><strong id="vz">0 cm/s</strong></div>
+            <div><span>Altura acumulada</span><strong id="height">0 cm</strong></div>
+            <div><span>Dist. horizontal</span><strong id="hdist">0 cm</strong></div>
+            <div><span>Dist. vertical</span><strong id="vdist">0 cm</strong></div>
+          </div>
+          <p id="message" class="message">Servidor iniciado.</p>
+        </section>
+
+        <section class="status-panel">
+          <h2>Controle</h2>
+          <div class="rc-readout">
+            <div><span>LR</span><strong id="rcLr">0</strong></div>
+            <div><span>FB</span><strong id="rcFb">0</strong></div>
+            <div><span>UD</span><strong id="rcUd">0</strong></div>
+            <div><span>YAW</span><strong id="rcYaw">0</strong></div>
+          </div>
+          <p class="hint">WASD move, setas ajustam altura e yaw. Gamepad Xbox funciona no navegador.</p>
+        </section>
+
+        <section class="status-panel">
+          <div class="panel-header">
+            <h2>Eventos</h2>
+            <div class="mini-actions">
+              <a href="/export/events.csv" class="small-button">CSV</a>
+              <a href="/export/report.pdf" class="small-button">PDF</a>
+            </div>
+          </div>
+          <div id="eventLog" class="event-log">
+            <p class="empty-log">Sem eventos nesta sessao.</p>
+          </div>
+        </section>
+
+        <section class="status-panel">
+          <h2>Trilha de voo</h2>
+          <canvas id="pathCanvas" width="320" height="220"></canvas>
+          <p class="hint">Estimativa por odometria (vgx/vgy), nao e GPS - acumula deriva ao longo do voo.</p>
+        </section>
+
+        <section class="status-panel">
+          <h2>Binds</h2>
+          <div class="bind-list" id="bindList"></div>
+        </section>
+      </aside>
+    </main>
+
+    <script src="{{ url_for('static', filename='vendor/socket.io.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </body>
+</html>

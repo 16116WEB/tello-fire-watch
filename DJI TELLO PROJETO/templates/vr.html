@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DJI Tello - Modo VR</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <style>
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+
+      #vrOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        text-align: center;
+        padding: 24px;
+      }
+
+      #vrOverlay.hidden {
+        display: none;
+      }
+
+      #vrOverlay p {
+        max-width: 460px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      #vrUnsupported {
+        color: var(--warn);
+      }
+
+      #vrUnsupported.hidden {
+        display: none;
+      }
+
+      #exitHint {
+        position: fixed;
+        bottom: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 5;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="vrOverlay">
+      <p class="eyebrow">DJI Tello</p>
+      <h1>Modo imersivo (Quest)</h1>
+      <p>
+        Stream da camera numa tela flutuante dentro do headset, telemetria como HUD e os
+        controllers mapeados para mover o drone. Precisa de HTTPS para o navegador liberar o
+        WebXR.
+      </p>
+      <button id="enterVrBtn" class="primary">Entrar em VR</button>
+      <p id="vrUnsupported" class="hidden">
+        WebXR nao esta disponivel aqui. Confirme que esta acessando por HTTPS (rode
+        <code>python generate_cert.py</code> e abra <code>https://&lt;ip-do-pc&gt;:5000/vr</code>),
+        ou instale a extensao "Immersive Web Emulator" no Chrome desktop pra testar sem o
+        headset.
+      </p>
+      <a class="small-button" href="/">Voltar ao painel 2D</a>
+    </div>
+
+    <p id="exitHint" class="hidden">Aperte o botao "Meta" / "Oculus" do controller pra sair do VR.</p>
+
+    <script src="{{ url_for('static', filename='vendor/socket.io.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/three.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vr.js') }}"></script>
+  </body>
+</html>
